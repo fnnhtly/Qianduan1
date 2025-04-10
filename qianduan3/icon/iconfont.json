@@ -1,0 +1,16 @@
+{
+  "id": "4881967",
+  "name": "2",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "11077391",
+      "name": "垃圾桶",
+      "font_class": "lajitong",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    }
+  ]
+}

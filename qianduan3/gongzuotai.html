@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="icon/iconfont.css">
+</head>
+
+<body>
+    <div class="body">
+        <div class="bodyLeft">
+            <div class="modelLibrary_title">
+                <span class="moxingku">模型库</span>
+                <button class="shanchu">
+                    <i class="iconfont icon-lajitong"></i>
+                </button>
+            </div>
+            <div class="modelLibrary">
+                <div class="tijiao">
+                    <input type="button" value="提交" class="tijiao1">
+                </div>
+                <div class="modelLibrary_1">
+                    <input type="button" value="增加层级" class="addLevel">
+                    <input type="button" value="+ 上传" class="upload">
+                </div>
+                <div class="modelList">
+                    <div class="modelDiv" draggable="true">
+                        <div class="right">
+                            <input type="button" value="" class="model">
+                        </div>
+                    </div>
+                    <div class="modelDiv" draggable="true">
+                        <div class="right">
+                            <input type="button" value="" class="model">
+                        </div>
+                    </div>
+                    <div class="modelDiv" draggable="true">
+                        <div class="right">
+                            <input type="button" value="" class="model">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bodyRight">
+        </div>
+    </div>
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <h3>上传模型信息</h3>
+            <div class="form-group">
+                <label>modelName</label>
+                <input type="text" id="modelNameInput">
+            </div>
+            <div class="form-group">
+                <label>modelUrl</label>
+                <input type="text" id="modelUrlInput">
+            </div>
+            <div class="form-group">
+                <label>简介</label>
+                <input type="text" id="introInput">
+            </div>
+            <button id="submitUpload">提交</button>
+        </div>
+    </div>
+    <div class="submit-modal" id="submitModal">
+        <div class="modal-content">
+            <h3>输入内容</h3>
+            <div class="form-group">
+                <label>输入语句/问题</label>
+                <textarea id="contentTextarea" rows="5" cols="50"></textarea>
+            </div>
+            <div class="form-group">
+                <label>上传图片</label>
+                <input type="file" id="imageUpload" accept="image/*">
+            </div>
+            <button id="submitContent">提交内容</button>
+        </div>
+    </div>
+    <div class="answer-container-wrapper hidden">
+        <div class="answer-container-header">
+            <span>AI 回答</span>
+        </div>
+        <div class="answer-container" id="answerContainer"></div>
+        <div class="answer-container-footer">
+            <button id="clearAnswers">清空</button>
+        </div>
+    </div>
+    <button id="toggleAnswers" class="toggle-button">打开</button>
+    <script src="tuodong.js"></script>
+</body>
+
+</html>
