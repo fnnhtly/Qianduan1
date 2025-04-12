@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Notebook</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -45,7 +45,7 @@
                 <div class="input">
                     <div class="input1">
                         <input type="text" placeholder="请输入标题" class="biaoti" data-i18n="inputTitle">
-                        <button type="button" class="tijiao">提交</button>
+                        <button type="button" class="tijiao" data-i18n="submit">提交</button>
                     </div>
                     <div class="input2">
                         <input type="text" placeholder="请输入内容" class="neirong" data-i18n="inputContent">
@@ -55,9 +55,9 @@
             <div class="body3">
                 <div class="note">
                     <div class="noteHead">
-                        <input type="button" value="全选" class="quanxuan">
+                        <input type="button" value="全选" class="quanxuan" data-i18n="allSelect">
                         <div class="noteHead1">
-                            <div class="noteHead2">今朝所学今朝记，笔记勤书莫延迟！</div>
+                            <div class="noteHead2" data-i18n="noteHead2">今朝所学今朝记，笔记勤书莫延迟！</div>
                         </div>
                     </div>
                     <ul class="note1"></ul>
@@ -65,49 +65,51 @@
                 <div class="functionList shadow">
                     <div class="flist1">
                         <div class="flist1_1">
-                            <span class="flist1_2">展开</span>
-                            <span class="flist1_3">管理</span>
+                            <span class="flist1_2" data-i18n="expand">展开</span>
+                            <span class="flist1_3" data-i18n="manage">管理</span>
                         </div>
                     </div>
                     <div class="flist2">
                         <ul class="flist3">
                             <li class="flist3_1">
-                                <input type="button" value="全部" class="flist3_quanbu">
+                                <input type="button" value="全部" class="flist3_quanbu" data-i18n="all">
                             </li>
                             <li class="flist3_1">
-                                <input type="button" value="重点加急" class="flist3_jiaji">
+                                <input type="button" value="重点加急" class="flist3_jiaji" data-i18n="urgent">
                             </li>
                             <li class="flist3_1">
-                                <input type="button" value="取消加急" class="flist3_qvxiaojiaji">
+                                <input type="button" value="取消加急" class="flist3_qvxiaojiaji" data-i18n="cancelUrgent">
                             </li>
                             <li class="flist3_1">
-                                <input type="button" value="回收站" class="flist3_huishouzhan">
+                                <input type="button" value="回收站" class="flist3_huishouzhan" data-i18n="recycleBin">
                             </li>
                         </ul>
                         <ul class="flist4">
                             <li class="flist4_1">
-                                <input type="button" value="完成" class="flist4_wancheng">
+                                <input type="button" value="完成" class="flist4_wancheng" data-i18n="complete">
                             </li>
                             <li class="flist4_1">
-                                <input type="button" value="取消完成" class="flist4_quxiaowancheng">
+                                <input type="button" value="取消完成" class="flist4_quxiaowancheng"
+                                    data-i18n="cancelComplete">
                             </li>
                             <li class="flist4_1">
-                                <input type="button" value="修改" class="flist4_xiugai">
+                                <input type="button" value="修改" class="flist4_xiugai" data-i18n="modify">
                             </li>
                             <li class="flist4_1">
-                                <input type="button" value="修改完成" class="flist4_xiugaiwancheng">
+                                <input type="button" value="修改完成" class="flist4_xiugaiwancheng" data-i18n="modifyDone">
                             </li>
                             <li class="flist4_1">
-                                <input type="button" value="删除至回收站" class="flist4_shanchu">
+                                <input type="button" value="删除至回收站" class="flist4_shanchu"
+                                    data-i18n="deleteToRecycleBin">
                             </li>
                         </ul>
                         <ul class="flist5">
                             <li class="flist5_1">
-                                <input type="button" value="导出笔记" class="flist5_daochu">
+                                <input type="button" value="导出笔记" class="flist5_daochu" data-i18n="exportNotes">
                             </li>
                             <li class="flist5_1">
-                                <input type="file" class="flist5_daoru" style="display: none;">
-                                <button class="custom-import-button">导入笔记(json)</button>
+                                <input type="file" class="flist5_daoru" style="display: none;" data-i18n="importNotes">
+                                <button class="custom-import-button" data-i18n="importNotes">导入笔记(json)</button>
                             </li>
                         </ul>
                     </div>

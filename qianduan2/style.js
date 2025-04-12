@@ -30,13 +30,14 @@ const SearchService = {
     }
 };
 
-// 多语言处理
+// 多语言处理，添加了回收站按钮所需文字
 const languageDict = {
     English: {
+        submit: 'Submit',
         inputTitle: 'Please enter the title',
         inputContent: 'Please enter the content',
-        submit: 'Submit',
         allSelect: 'Select All',
+        cancelAllSelect: 'Cancel All',
         noteHead2: 'What you learn today, remember today! Write notes frequently!',
         expand: 'Expand',
         collapse: 'Collapse',
@@ -53,19 +54,26 @@ const languageDict = {
         importNotes: 'Import Notes (json)',
         complete: 'Complete',
         cancelComplete: 'Cancel Complete',
-        allComplete: 'All Complete'
+        allComplete: 'All Complete',
+        searchPlaceholder: 'Enter search content (title or content)',
+        noteTitle: 'Title',
+        noteContent: 'Content',
+        noteTime: 'Time',
+        restore: 'Restore',
+        deleteForever: 'Delete Forever'
     },
     zhongwen: {
+        submit: '提交',
         inputTitle: '请输入标题',
         inputContent: '请输入内容',
-        submit: '提交',
         allSelect: '全选',
+        cancelAllSelect: '取消全选',
         noteHead2: '今朝所学今朝记，笔记勤书莫延迟！',
         expand: '展开',
         collapse: '收起',
         manage: '管理',
         all: '全部',
-        urgent: '重点加急',
+        urgent: '加急',
         cancelUrgent: '取消加急',
         recycleBin: '回收站',
         modify: '修改',
@@ -76,7 +84,13 @@ const languageDict = {
         importNotes: '导入笔记(json)',
         complete: '完成',
         cancelComplete: '取消完成',
-        allComplete: '全部完成'
+        allComplete: '全部完成',
+        searchPlaceholder: '请输入搜索内容（标题或内容）',
+        noteTitle: '标题',
+        noteContent: '内容',
+        noteTime: '时间',
+        restore: '恢复',
+        deleteForever: '彻底删除'
     }
 };
 
@@ -111,6 +125,9 @@ function validateInput(title, content) {
     const errors = [];
     if (!title.trim()) errors.push('标题不能为空');
     if (!content.trim()) errors.push('内容不能为空');
+    if (errors.length) {
+        alert(errors.join('\n'));
+    }
     return errors;
 }
 
@@ -128,8 +145,8 @@ function debounce(func, delay) {
 // 笔记存储管理类
 class NoteStore {
     constructor() {
-        this.notes = StorageService.load('notes');
-        this.recycleBin = StorageService.load('recycleBin');
+        this.notes = StorageService.load('notes') || [];
+        this.recycleBin = StorageService.load('recycleBin') || [];
     }
 
     // 添加新笔记
@@ -140,10 +157,14 @@ class NoteStore {
 
     // 将笔记移动到回收站
     moveToRecycleBin(index) {
-        const note = this.notes.splice(index, 1)[0];
-        this.recycleBin.push(note);
-        this.saveNotes();
-        this.saveRecycleBin();
+        if (index >= 0 && index < this.notes.length) {
+            const note = this.notes.splice(index, 1)[0];
+            this.recycleBin.push(note);
+            this.saveNotes();
+            this.saveRecycleBin();
+        } else {
+            console.error(`Invalid index: ${index}`);
+        }
     }
 
     // 从回收站恢复笔记
@@ -169,8 +190,12 @@ class NoteStore {
 
     // 选择或取消选择笔记
     selectNote(index, isSelected) {
-        this.notes[index].isSelected = isSelected;
-        this.saveNotes();
+        if (this.notes[index]) {
+            this.notes[index].isSelected = isSelected;
+            this.saveNotes();
+        } else {
+            console.error(`Invalid index: ${index}`);
+        }
     }
 
     // 全选笔记
@@ -236,7 +261,10 @@ function updateSelectAllButton(showRecycleBin = false) {
     const notes = showRecycleBin ? noteStore.recycleBin : noteStore.notes;
     const allSelected = notes.every(note => note.isSelected);
     const quanxuan = document.querySelector('.quanxuan');
-    quanxuan.value = allSelected ? '取消全选' : '全选';
+    if (quanxuan) {
+        const lang = document.querySelector('.language .xuanzhong').classList.contains('English') ? 'English' : 'zhongwen';
+        quanxuan.value = allSelected ? languageDict[lang].cancelAllSelect : languageDict[lang].allSelect;
+    }
 }
 
 // 处理提交
@@ -249,7 +277,6 @@ function handleSubmit() {
         const content = neirong.value;
         const errors = validateInput(title, content);
         if (errors.length) {
-            showNotification(errors.join('\n'), 'error');
             return;
         }
         const clickTime = new Date().toLocaleString();
@@ -276,7 +303,9 @@ function handleDelete() {
         const selectedNotes = noteStore.notes.filter(note => note.isSelected);
         selectedNotes.forEach(selectedNote => {
             const index = noteStore.notes.findIndex(note => note === selectedNote);
-            noteStore.moveToRecycleBin(index);
+            if (index !== -1) {
+                noteStore.moveToRecycleBin(index);
+            }
         });
         noteStore.unselectAll();
         renderNotes();
@@ -372,12 +401,14 @@ function handleSelect() {
         const target = e.target.closest('.note1_3');
         if (target) {
             const li = target.closest('.note2');
-            const index = li.dataset.index;
-            noteStore.selectNote(index, !target.classList.contains('nCheck'));
-            target.classList.toggle('nNull');
-            target.classList.toggle('nCheck');
-            updateSelectAllButton();
-            renderNotes();
+            const index = li ? li.dataset.index : null;
+            if (index !== null) {
+                noteStore.selectNote(Number(index), !target.classList.contains('nCheck'));
+                target.classList.toggle('nNull');
+                target.classList.toggle('nCheck');
+                updateSelectAllButton();
+                renderNotes();
+            }
         }
     });
 }
@@ -389,10 +420,12 @@ function handleAllSelect() {
         const allSelected = noteStore.notes.every(note => note.isSelected);
         if (allSelected) {
             noteStore.unselectAll();
-            quanxuan.value = '全选';
+            const lang = document.querySelector('.language .xuanzhong').classList.contains('English') ? 'English' : 'zhongwen';
+            quanxuan.value = languageDict[lang].allSelect;
         } else {
             noteStore.selectAll();
-            quanxuan.value = '取消全选';
+            const lang = document.querySelector('.language .xuanzhong').classList.contains('English') ? 'English' : 'zhongwen';
+            quanxuan.value = languageDict[lang].cancelAllSelect;
         }
         renderNotes();
     });
@@ -403,6 +436,7 @@ function handleSearch() {
     const head1 = document.querySelector('.head');
     const searchInput = document.createElement('input');
     searchInput.placeholder = '请输入搜索内容（标题或内容）';
+    searchInput.setAttribute('data-i18n', 'searchPlaceholder');
     const noteHead = document.querySelector('.noteHead');
     head1.appendChild(searchInput);
     searchInput.className = 'search';
@@ -521,40 +555,16 @@ function resetInputShadow() {
 function switchLanguage(lang) {
     const elements = document.querySelectorAll('[data-i18n]');
     elements.forEach(el => {
-        el.textContent = languageDict[lang][el.dataset.i18n];
-    });
-
-    const btnTexts = {
-        '.quanxuan': 'allSelect',
-        '.noteHead2': 'noteHead2',
-        '.flist1_2': 'expand',
-        '.flist1_3': 'manage',
-        '.flist3_quanbu': 'all',
-        '.flist3_jiaji': 'urgent',
-        '.flist3_qvxiaojiaji': 'cancelUrgent',
-        '.flist3_huishouzhan': 'recycleBin',
-        '.flist4_xiugai': 'modify',
-        '.flist4_xiugaiwancheng': 'modifyDone',
-        '.flist4_shanchu': 'deleteToRecycleBin',
-        '.flist4_quanbushanchu': 'allDelete',
-        '.flist5_daochu': 'exportNotes',
-        '.flist5_daoru': 'importNotes',
-        '.tijiao': 'submit',
-        '.flist3_complete': 'complete',
-        '.flist3_cancelComplete': 'cancelComplete',
-        '.flist3_allComplete': 'allComplete'
-    };
-
-    Object.keys(btnTexts).forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => {
-            if (el.tagName === 'INPUT') {
-                el.value = languageDict[lang][btnTexts[selector]];
+        const key = el.dataset.i18n;
+        if (languageDict[lang][key]) {
+            if (el.tagName === 'INPUT' && el.type !== 'file') {
+                el.value = languageDict[lang][key];
             } else {
-                el.textContent = languageDict[lang][btnTexts[selector]];
+                el.textContent = languageDict[lang][key];
             }
-        });
+        }
     });
+    renderNotes(); // 切换语言后重新渲染笔记
 }
 
 // 更新功能按钮的可见性
@@ -574,7 +584,7 @@ function updateFunctionButtonsVisibility(showRecycleBin = false) {
         '.flist5_daochu',
         '.flist3_huishouzhan',
         '.flist4_wancheng',
-        '.flist4_qvxiaowancheng'
+        '.flist4_quxiaowancheng'
     ];
 
     buttons.forEach(button => {
@@ -663,7 +673,6 @@ function handleCancelComplete() {
 // 渲染笔记时，根据 isCompleted 显示不同样式
 function renderNotes(query = '', showRecycleBin = false) {
     const noteList = document.querySelector('.note1');
-    const noteStore = new NoteStore();
     let notes = showRecycleBin ? noteStore.recycleBin : noteStore.notes;
     if (query) {
         notes = SearchService.search(query, notes);
@@ -682,7 +691,6 @@ function renderNotes(query = '', showRecycleBin = false) {
             newLi.classList.add('nCompleted');
         }
         newLi.dataset.index = index;
-        // 右侧圆圈用于选择笔记
         const statusDiv = document.createElement('div');
         statusDiv.classList.add('note1_3', note.isSelected ? 'nCheck' : 'nNull');
         statusDiv.style.cursor = 'pointer';
@@ -697,22 +705,41 @@ function renderNotes(query = '', showRecycleBin = false) {
         contentWrapper.style.marginLeft = '10px';
         contentWrapper.style.flexDirection = 'column';
         contentWrapper.style.gap = '5px';
+        const lang = document.querySelector('.language .xuanzhong').classList.contains('English') ? 'English' : 'zhongwen';
         const titleSpan = document.createElement('span');
-        titleSpan.textContent = `标题: ${escapeHtml(note.title)}`;
+        titleSpan.textContent = `${languageDict[lang].noteTitle}: ${escapeHtml(note.title)}`;
+        titleSpan.setAttribute('data-i18n', 'noteTitle');
         if (note.isCompleted) {
             titleSpan.style.textDecoration = 'line-through';
         }
         const contentSpan = document.createElement('span');
-        contentSpan.textContent = `内容: ${escapeHtml(note.content)}`;
+        contentSpan.textContent = `${languageDict[lang].noteContent}: ${escapeHtml(note.content)}`;
+        contentSpan.setAttribute('data-i18n', 'noteContent');
         if (note.isCompleted) {
             contentSpan.style.textDecoration = 'line-through';
         }
         const timeSpan = document.createElement('span');
-        timeSpan.textContent = `时间: ${note.time}`;
+        timeSpan.textContent = `${languageDict[lang].noteTime}: ${note.time}`;
+        timeSpan.setAttribute('data-i18n', 'noteTime');
+        if (note.isCompleted) {
+            titleSpan.style.textDecoration = 'line-through';
+            contentSpan.style.textDecoration = 'line-through';
+            timeSpan.style.textDecoration = 'line-through';
+
+            if (!contentWrapper.querySelector('.completed-span')) {
+                const completedSpan = document.createElement('span');
+                completedSpan.textContent = languageDict[lang].complete;
+                completedSpan.classList.add('completed-span');
+                completedSpan.setAttribute('data-i18n', 'complete');
+                timeSpan.insertAdjacentElement('afterend', completedSpan);
+            }
+        }
         const urgentSpan = document.createElement('span');
         if (note.isUrgent) {
-            urgentSpan.textContent = '加急';
+            urgentSpan.textContent = languageDict[lang].urgent;
             urgentSpan.style.color = 'red';
+            urgentSpan.setAttribute('data-i18n', 'urgent');
+            contentWrapper.appendChild(urgentSpan);
         }
         contentWrapper.appendChild(titleSpan);
         contentWrapper.appendChild(contentSpan);
@@ -721,27 +748,30 @@ function renderNotes(query = '', showRecycleBin = false) {
             contentWrapper.appendChild(urgentSpan);
         }
         if (note.isCompleted) {
-            const completedSpan = document.createElement('span');
-            completedSpan.textContent = '完成';
-            contentWrapper.appendChild(completedSpan);
+            if (!contentWrapper.querySelector('.completed-span')) {
+                const completedSpan = document.createElement('span');
+                completedSpan.textContent = languageDict[lang].complete;
+                completedSpan.classList.add('completed-span');
+                contentWrapper.appendChild(completedSpan);
+            }
         }
         newLi.appendChild(statusDiv);
         newLi.appendChild(contentWrapper);
         if (showRecycleBin) {
-            // 回收站中的恢复按钮
             const restoreDiv = document.createElement('div');
             restoreDiv.classList.add('nRestore');
-            restoreDiv.textContent = '恢复';
+            const lang = document.querySelector('.language .xuanzhong').classList.contains('English') ? 'English' : 'zhongwen';
+            restoreDiv.textContent = languageDict[lang].restore; // 确保使用多语言字典中的 "restore"
             restoreDiv.style.cursor = 'pointer';
             restoreDiv.addEventListener('click', () => {
                 noteStore.restoreFromRecycleBin(index);
                 renderNotes(query, showRecycleBin);
             });
             newLi.appendChild(restoreDiv);
-            // 回收站中的彻底删除按钮
+
             const deleteDiv = document.createElement('div');
             deleteDiv.classList.add('nDelete');
-            deleteDiv.textContent = '彻底删除';
+            deleteDiv.textContent = languageDict[lang].deleteForever; // 确保使用多语言字典中的 "deleteForever"
             deleteDiv.style.cursor = 'pointer';
             deleteDiv.addEventListener('click', () => {
                 noteStore.deleteFromRecycleBin(index);
@@ -782,21 +812,13 @@ function handleExpandCollapse() {
     const manageBlock = document.querySelector('.flist1_3');
 
     expandButton.addEventListener('click', () => {
-        if (expandButton.textContent === languageDict.zhongwen.expand || expandButton.textContent === languageDict.English.expand) {
-            expandButton.textContent = languageDict.zhongwen.collapse;
-            if (languageDict.English) {
-                expandButton.textContent = languageDict.English.collapse;
-            }
+        const lang = document.querySelector('.language .xuanzhong').classList.contains('English') ? 'English' : 'zhongwen';
+
+        if (expandButton.textContent === languageDict[lang].expand) {
+            expandButton.textContent = languageDict[lang].collapse;
             functionBlock1.style.display = 'none';
             functionBlock2.style.display = 'none';
             functionBlock3.style.display = 'none';
-            manageBlock.style.display = 'block';
-        } else {
-            expandButton.textContent = languageDict.zhongwen.expand;
-            if (languageDict.English) {
-                expandButton.textContent = languageDict.English.expand;
-            }
-            functionBlock1.style.display = 'block';
             functionBlock2.style.display = 'block';
             functionBlock3.style.display = 'block';
             manageBlock.style.display = 'none';
@@ -813,7 +835,6 @@ function importNotes(event) {
     reader.onload = function (e) {
         try {
             const importedNotes = JSON.parse(e.target.result);
-            const noteStore = new NoteStore();
             noteStore.notes = importedNotes;
             noteStore.saveNotes();
             renderNotes();
@@ -827,6 +848,19 @@ function importNotes(event) {
         showNotification('读取文件时出错', 'error');
     };
     reader.readAsText(file);
+}
+
+function handleRecycleBinToggle() {
+    const recycleBinButton = document.querySelector('.flist3_huishouzhan');
+    const allButton = document.querySelector('.flist3_quanbu');
+
+    recycleBinButton.addEventListener('click', () => {
+        renderNotes('', true); // 渲染回收站
+    });
+
+    allButton.addEventListener('click', () => {
+        renderNotes(); // 渲染笔记库
+    });
 }
 
 function initApp() {
@@ -845,9 +879,15 @@ function initApp() {
     handleSelect();
     handleAllSelect();
     document.querySelectorAll('.language a').forEach(link => {
-        link.addEventListener('click', function () {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
             const lang = this.classList.contains('English') ? 'English' : 'zhongwen';
             switchLanguage(lang);
+
+            document.querySelectorAll('.language a').forEach(a => a.classList.remove('xuanzhong'));
+            this.classList.add('xuanzhong');
+
+            renderNotes();
         });
     });
     handleSearch();
@@ -861,20 +901,18 @@ function initApp() {
     }
     const recycleBinButton = document.querySelector('.flist3_huishouzhan');
     recycleBinButton.addEventListener('click', function () {
-        const isRecycleBin1 = this.textContent === languageDict.zhongwen.recycleBin || this.textContent === languageDict.English.recycleBin;
-        renderNotes('', isRecycleBin1);
-        const isRecycleBin = this.value === '回收站';
+        const isRecycleBin = this.textContent === languageDict.zhongwen.recycleBin || this.textContent === languageDict.English.recycleBin;
         renderNotes('', isRecycleBin);
     });
     handleComplete();
     handleCancelComplete();
     handleRightButtons();
     handleExpandCollapse();
+    handleRecycleBinToggle();
 }
 
 // 导出笔记为 JSON 文件
 function exportNotes() {
-    const noteStore = new NoteStore();
     const notes = noteStore.notes;
     const jsonData = JSON.stringify(notes, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
